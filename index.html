@@ -1,3 +1,19 @@
+<script>
+        document.addEventListener('contextmenu', (e) => {
+            e.preventDefault(); 
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (
+                e.ctrlKey && (e.key === 'u' || e.key === 'U') ||  
+                e.key === 'F12' ||                             
+                (e.ctrlKey && e.shiftKey && e.key === 'I') ||     
+                (e.metaKey && e.altKey && e.key === 'I')          
+            ) {
+                e.preventDefault(); 
+            }
+        });
+</script>
 <!DOCTYPE html>
 <html lang="es">
 <head>
