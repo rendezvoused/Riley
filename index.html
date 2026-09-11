@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Perfil Dinámico & Historia</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #000;
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* CONTENEDOR PRINCIPAL QUE EL SCRIPT ESCALA */
+    .container {
+      position: relative;
+      width: 100%;
+      max-width: 950px;
+      height: 750px; /* Proporción base de diseño */
+      background: #000;
+      overflow: hidden;
+    }
+
+    /* ================= PANTALLA 1 (PERFIL) ================= */
+    #screen-profile {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 24px 35px 35px 35px;
+    }
+
+    /* Fondo oscuro nítido / con grano sutil */
+    .bg-blurred {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url('https://i.pinimg.com/736x/3e/7e/9e/3e7e9e62d3f0325e33c1edf51380e1d4.jpg') center/cover no-repeat;
+      filter: grayscale(100%) brightness(0.65);
+      z-index: 1;
+    }
+
+    .profile-content {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    /* Barra superior: Buscador estilo Instagram */
+    .top-bar {
+      display: flex;
+      justify-content: center;
+      width: 100%;
+    }
+
+    .search-bar {
+      background: rgba(220, 220, 225, 0.88);
+      color: #111;
+      width: 360px;
+      height: 38px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 14px;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+    }
+
+    .search-icon {
+      font-size: 1.1rem;
+      color: #1a1a1a;
+      display: flex;
+      align-items: center;
+    }
+
+    .close-search {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #222;
+      cursor: pointer;
+    }
+
+    /* Código de barras lateral derecho */
+    .barcode-container {
+      position: absolute;
+      right: 15px;
+      top: 30%;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      z-index: 3;
+    }
+
+    .barcode {
+      width: 58px;
+      height: 240px;
+      background: repeating-linear-gradient(
+        to bottom,
+        #fff 0px, #fff 3px,
+        transparent 3px, transparent 6px,
+        #fff 6px, #fff 11px,
+        transparent 11px, transparent 13px,
+        #fff 13px, #fff 15px,
+        transparent 15px, transparent 19px,
+        #fff 19px, #fff 25px,
+        transparent 25px, transparent 27px,
+        #fff 27px, #fff 33px,
+        transparent 33px, transparent 38px,
+        #fff 38px, #fff 41px,
+        transparent 41px, transparent 43px,
+        #fff 43px, #fff 48px,
+        transparent 48px, transparent 52px
+      );
+      opacity: 0.9;
+    }
+
+    .barcode-numbers {
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      transform: rotate(180deg);
+      font-family: monospace;
+      font-size: 0.65rem;
+      letter-spacing: 12px;
+      color: #ccc;
+      height: 240px;
+      display: flex;
+      justify-content: space-between;
+      user-select: none;
+    }
+
+    /* Footer con Avatar interactivo */
+    .profile-footer {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      margin-bottom: 5px;
+    }
+
+    /* Aro de historia estilo cian / azul eléctrico */
+    .story-ring-container {
+      cursor: pointer;
+      display: inline-block;
+      position: relative;
+      padding: 3.5px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #1fa2ff, #12d8fa, #a6ffcb);
+      animation: pulse-ring 2.5s infinite ease-in-out;
+      transition: transform 0.2s ease;
+    }
+
+    .story-ring-container:hover {
+      transform: scale(1.04);
+    }
+
+    @keyframes pulse-ring {
+      0%, 100% { box-shadow: 0 0 10px rgba(31, 162, 255, 0.45); }
+      50% { box-shadow: 0 0 22px rgba(18, 216, 250, 0.85); }
+    }
+
+    .avatar-wrapper {
+      width: 140px;
+      height: 140px;
+      background: #000;
+      border-radius: 50%;
+      padding: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .avatar-img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    /* Datos del usuario */
+    .user-info {
+      margin-top: 15px;
+    }
+
+    .name-badge-row {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .name-badge-row h2 {
+      font-size: 1.15rem;
+      font-weight: 800;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+    }
+
+    .verified-badge {
+      width: 15px;
+      height: 15px;
+      background: #0095f6;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      color: #fff;
+      box-shadow: 0 0 6px rgba(0, 149, 246, 0.6);
+    }
+
+    .user-handle {
+      color: #999;
+      font-size: 0.85rem;
+      margin-top: 2px;
+    }
+
+    /* Contadores de seguidores */
+    .user-stats {
+      display: flex;
+      gap: 18px;
+      margin-top: 14px;
+      font-size: 0.82rem;
+      color: #e0e0e0;
+    }
+
+    .user-stats span {
+      font-weight: 500;
+    }
+
+    /* ================= PANTALLA 2 (HISTORIA / REPRODUCTOR) ================= */
+    #screen-story {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.95);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease-in-out;
+      z-index: 999;
+    }
+
+    #screen-story.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .story-frame {
+      width: 100%;
+      max-width: 420px;
+      height: 90%;
+      max-height: 740px;
+      border-radius: 16px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 16px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+    }
+
+    .story-bg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url('https://i.pinimg.com/736x/71/24/28/7124284ce8b0cc562e7d3c7b5d111b18.jpg') center/cover no-repeat;
+      z-index: 1;
+      filter: grayscale(100%) brightness(0.65);
+    }
+
+    .story-content {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      justify-content: space-between;
+    }
+
+    .progress-bar-container {
+      width: 100%;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+
+    .progress-bar {
+      width: 0%;
+      height: 100%;
+      background: #fff;
+    }
+
+    .story-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .author-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .author-pfp {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .author-name {
+      font-size: 0.85rem;
+      font-weight: bold;
+    }
+
+    .story-time {
+      font-size: 0.75rem;
+      color: #bbb;
+      margin-left: 5px;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 1.5rem;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .music-player-widget {
+      align-self: center;
+      width: 150px;
+      height: 150px;
+      position: relative;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+      display: flex;
+      align-items: flex-end;
+      margin: auto 0;
+    }
+
+    .music-artwork {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: grayscale(0%);
+    }
+
+    .music-overlay {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+      padding: 12px;
+      text-align: center;
+    }
+
+    .song-title {
+      font-size: 1rem;
+      font-weight: 300;
+    }
+
+    .song-artist {
+      font-size: 0.8rem;
+      color: #ccc;
+      margin-bottom: 6px;
+    }
+
+    .audio-controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    .play-pause-btn {
+      background: white;
+      color: black;
+      border: none;
+      border-radius: 50%;
+      width: 22px;
+      height: 22px;
+      font-size: 0.5rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .story-footer {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .story-input {
+      flex-grow: 1;
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      padding: 10px 16px;
+      border-radius: 25px;
+      color: #fff;
+      outline: none;
+      font-size: 0.85rem;
+    }
+
+    .story-input::placeholder {
+      color: rgba(255, 255, 255, 0.7);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- CONTENEDOR PRINCIPAL -->
+  <div class="container">
+
+    <!-- PANTALLA 1: PERFIL -->
+    <div id="screen-profile">
+      <div class="bg-blurred"></div>
+      
+      <!-- Código de barras lateral derecho con numeración -->
+      <div class="barcode-container">
+        <div class="barcode"></div>
+        <div class="barcode-numbers">
+          <span>8</span>
+          <span>176</span>
+          <span>511</span>
+          <span>8</span>
+          <span>1</span>
+        </div>
+      </div>
+
+      <div class="profile-content">
+        <!-- Buscador superior con lupa y X -->
+        <div class="top-bar">
+          <div class="search-bar">
+            <span class="search-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+            </span>
+            <span class="close-search">&times;</span>
+          </div>
+        </div>
+
+        <!-- Footer con Avatar de Historia e Info -->
+        <div class="profile-footer">
+          <!-- Click para abrir historia -->
+          <div class="story-ring-container" id="openStoryBtn" title="Ver Historia">
+            <div class="avatar-wrapper">
+              <img class="avatar-img" src="https://i.pinimg.com/736x/df/fa/30/dffa3073ac3fbd192cd61106a7500c6a.jpg" alt="Avatar">
+            </div>
+          </div>
+
+          <div class="user-info">
+            <div class="name-badge-row">
+              <h2>SCAR</h2>
+              <span class="verified-badge">✓</span>
+            </div>
+            <p class="user-handle">@HEADACHE</p>
+            <div class="user-stats">
+              <span>40k followers</span>
+              <span>10 Posts</span>
+              <span>150 Following</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PANTALLA 2: HISTORIA & MÚSICA -->
+    <div id="screen-story">
+      <div class="story-frame">
+        <div class="story-bg"></div>
+
+        <div class="story-content">
+          <div>
+            <div class="progress-bar-container">
+              <div class="progress-bar" id="progressBar"></div>
+            </div>
+            
+            <div class="story-header">
+              <div class="author-info">
+                <img class="author-pfp" src="https://i.pinimg.com/736x/df/fa/30/dffa3073ac3fbd192cd61106a7500c6a.jpg" alt="Pfp">
+                <span class="author-name">Scar</span>
+                <span class="story-time">6 min</span>
+              </div>
+              <button class="close-btn" id="closeStoryBtn">&times;</button>
+            </div>
+          </div>
+
+          <div class="music-player-widget">
+            <img class="music-artwork" src="https://i.scdn.co/image/ab67616d0000b273e3f1ba3de4659708c25d0f39">
+            <div class="music-overlay">
+              <div class="song-title">Selfless</div>
+              <div class="song-artist">THE STROKES</div>
+              
+              <div class="audio-controls">
+                <button class="play-pause-btn" id="togglePlayBtn">❚❚</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="story-footer">
+            <input type="text" class="story-input" placeholder="Enviar mensagem...">
+            <span>♡</span>
+            <span>⌲</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ELEMENTO DE AUDIO -->
+  <audio id="bgMusic" preload="auto">
+    <source src="https://dl.dropbox.com/scl/fi/7ite659147mqi7gzpvbfk/The-Strokes-Selfless-Sub-Espa-ol-_HD_-128-kbps.mp3?rlkey=euisvoed681p1y24ka5wt3b9n&st=utoxht76&dl=0" type="audio/mpeg">
+  </audio>
+
+  <!-- ================= LÓGICA JAVASCRIPT ================= -->
+  <script>
+    // --- LÓGICA DE HISTORIA Y AUDIO ---
+    const openStoryBtn = document.getElementById('openStoryBtn');
+    const closeStoryBtn = document.getElementById('closeStoryBtn');
+    const screenStory = document.getElementById('screen-story');
+    const audio = document.getElementById('bgMusic');
+    const progressBar = document.getElementById('progressBar');
+    const togglePlayBtn = document.getElementById('togglePlayBtn');
+
+    openStoryBtn.addEventListener('click', () => {
+      screenStory.classList.add('active');
+      audio.currentTime = 0;
+      audio.play().then(() => {
+        togglePlayBtn.innerText = '❚❚';
+      }).catch(err => {
+        console.warn("Audio prevenido:", err);
+      });
+    });
+
+    function closeStory() {
+      screenStory.classList.remove('active');
+      audio.pause();
+    }
+
+    closeStoryBtn.addEventListener('click', closeStory);
+
+    audio.addEventListener('timeupdate', () => {
+      if (audio.duration) {
+        const percent = (audio.currentTime / audio.duration) * 100;
+        progressBar.style.width = percent + '%';
+      }
+    });
+
+    togglePlayBtn.addEventListener('click', () => {
+      if (audio.paused) {
+        audio.play();
+        togglePlayBtn.innerText = '❚❚';
+      } else {
+        audio.pause();
+        togglePlayBtn.innerText = '▶';
+      }
+    });
+
+    audio.addEventListener('ended', closeStory);
+
+    // --- SCRIPT DE AUTO-ESCALADO RESPONSIVE ---
+    function handleContainerScaling() {
+      const container = document.querySelector('.container');
+      const body = document.body;
+      
+      let wrapper = document.querySelector('.container-wrapper');
+      if (!wrapper) {
+        wrapper = document.createElement('div');
+        wrapper.className = 'container-wrapper';
+        container.parentNode.insertBefore(wrapper, container);
+        wrapper.appendChild(container);
+        
+        const style = document.createElement('style');
+        style.textContent = `
+          .container-wrapper {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+          }
+          .container.scaled {
+            transform-origin: center center;
+            margin: 0 auto;
+          }
+        `;
+        document.head.appendChild(style);
+      }
+      
+      function checkAndFreezeScaling() {
+        const containerHeight = container.scrollHeight;
+        const containerWidth = container.offsetWidth;
+        const viewportHeight = window.innerHeight;
+        const viewportWidth = window.innerWidth;
+
+        const isOverflowing = (containerHeight > viewportHeight) || (containerWidth > viewportWidth);
+        
+        if (isOverflowing) {
+          const scaleFactorHeight = viewportHeight / containerHeight;
+          const scaleFactorWidth = viewportWidth / containerWidth;
+          const scaleFactor = Math.min(scaleFactorHeight, scaleFactorWidth);
+          
+          container.style.zoom = 'unset';
+          container.style.transform = `scale(${scaleFactor})`;
+          container.classList.add('scaled');
+        } else {
+          container.style.transform = 'none';
+          container.style.zoom = '1.0';
+          container.classList.remove('scaled');
+        }
+      }
+      
+      container.style.transition = 'transform 0.1s ease';
+      
+      let resizeTimeout;
+      window.addEventListener('resize', function() {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(checkAndFreezeScaling, 50);
+      });
+      
+      window.addEventListener('orientationchange', function() {
+        setTimeout(checkAndFreezeScaling, 100);
+      });
+      
+      setTimeout(checkAndFreezeScaling, 100);
+      setInterval(checkAndFreezeScaling, 500);
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      setTimeout(handleContainerScaling, 200);
+    });
+
+    window.addEventListener('load', handleContainerScaling);
+  </script>
+</body>
+</html>
